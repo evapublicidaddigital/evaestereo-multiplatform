@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Box, Button, TextField } from "@mui/material";
+import { Box, Button, TextField, Typography } from "@mui/material";
 import { ScreenProvider, useScreenProvider } from "./screen-context";
 
 export const SignInContent = (): ReactNode => {
@@ -18,6 +18,8 @@ export const SignInContent = (): ReactNode => {
       autoComplete="off"
     >
       <div>
+        <Typography variant="h6">Ingrese su licencia por favor</Typography>
+
         <TextField
           label="Licencia"
           id="outlined-size-small"

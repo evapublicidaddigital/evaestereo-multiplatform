@@ -225,13 +225,29 @@ export function AuthContextProvider({
     setError(null);
   }, []);
 
+  /**
+   * Validates the license by checking its expiration date and period.
+   * This function is called once on component mount and then every 24 hours.
+   * If the license is expired or the period is invalid, the user is de-authenticated.
+   */
   const validateLicense = useCallback(async (): Promise<void> => {
     try {
       setIsLoading(true);
       const result = await window.api.verifyLicense();
       if (result) {
+        const licenseData = result as LicenseResponse;
+        // The expiration date is converted from seconds to milliseconds.
+        const expirationDate = new Date((licenseData.Expires ?? 0) * 1000);
+        const now = new Date();
+
+        // The license is validated by checking the expiration date and period.
+        if (expirationDate < now || (licenseData.Period ?? 0) < 0) {
+          setIsAuthenticated(false);
+          return;
+        }
+
         setIsAuthenticated(true);
-        setLicense(result as LicenseResponse);
+        setLicense(licenseData);
         const typeScheduleId = (await window.electron.store.get(
           "typeScheduleId",
         )) as string;
@@ -254,9 +270,40 @@ export function AuthContextProvider({
     }
   }, []);
 
+  const validateLicense2 = useCallback(async (): Promise<void> => {
+    try {
+      const result = await window.api.verifyLicense();
+      if (result) {
+        const licenseData = result as LicenseResponse;
+        // The expiration date is converted from seconds to milliseconds.
+        const expirationDate = new Date((licenseData.Expires ?? 0) * 1000);
+        const now = new Date();
+
+        // The license is validated by checking the expiration date and period.
+        if (expirationDate < now || (licenseData.Period ?? 0) < 0) {
+          setIsAuthenticated(false);
+          return;
+        }
+      }
+    } catch (error) {
+      console.log("🦋🦋🦋🦋🦋🦋🦋🦋🦋 ========", error);
+      alert("Error al validar la licencia");
+      setIsAuthenticated(false);
+    }
+  }, []);
+
   useEffect(() => {
+    // The license is validated once on component mount.
     validateLicense();
-  }, [validateLicense]);
+
+    // The license is validated every 24 hours to ensure it is still valid.
+    const intervalId = setInterval(validateLicense, 48 * 60 * 60 * 1000); // 48 hours
+    // For testing purposes, the interval can be set to 2 minutes.
+    // const intervalId = setInterval(validateLicense2, 1 * 60 * 1000); // 2 minutes
+
+    // The interval is cleared when the component is unmounted.
+    return () => clearInterval(intervalId);
+  }, [validateLicense, validateLicense2]);
 
   const contextValue = useMemo<AuthContextType>(
     () => ({

@@ -26,7 +26,11 @@ export const ListDefault = (): ReactNode => {
 
   const filteredSchedules = useMemo(() => {
     return visibleSchedules.filter((s) =>
-      s.name.toLowerCase().includes(text.toLowerCase()),
+      s.name
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, "")
+        .includes(text.toLowerCase().trim().replace(/\s+/g, "")),
     );
   }, [visibleSchedules, text]);
 

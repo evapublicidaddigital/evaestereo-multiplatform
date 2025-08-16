@@ -141,6 +141,7 @@ app.whenReady().then(async () => {
             cachedKey,
             MachineCode,
           );
+
           const licenseString = Crypto.Helpers.SaveAsString(result);
           // refresh cache
           store.set("licenseAsString", licenseString);

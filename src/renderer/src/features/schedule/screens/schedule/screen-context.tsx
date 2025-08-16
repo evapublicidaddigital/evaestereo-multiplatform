@@ -23,12 +23,15 @@ export function ScreenProvider({
 }): ReactNode {
   const { getIds } = useGetIds();
 
-  const [fetchSchedules, { data: schedules = [] }] = useLazyGetSchedulesQuery();
+  const [fetchSchedules, { data: schedules = [], isFetching }] = useLazyGetSchedulesQuery();
 
   const scheduler = useMemo(() => new AudioScheduler(), []);
   const [playing, setPlaying] = useState<PublicJob | null>(null);
   const [queued, setQueued] = useState<PublicJob[]>([]);
   const [text, setText] = useState<string>("");
+  const [value, setValue] = useState(0);
+  const [bottomValue, setBottomValue] = useState(0);
+  const [open, setOpen] = useState(false);
 
   const handleSelectAudio = useCallback(
     (audio: ScheduleModel): void => {
@@ -37,18 +40,36 @@ export function ScreenProvider({
     [scheduler],
   );
 
-  useEffect(() => {
-    (async () => {
-      const { typeScheduleId, countryId, stateId } = await getIds();
-      if (typeScheduleId && countryId && stateId) {
-        fetchSchedules({
-          type_schedule_id: typeScheduleId,
-          country_id: Number(countryId),
-          state_id: Number(stateId),
-        });
-      }
-    })();
+  const handleChange = (
+    _event: React.SyntheticEvent,
+    newValue: number,
+  ): void => {
+    setValue(newValue);
+  };
+
+  const handleClose = useCallback(() => {
+    setOpen(false);
+  }, []);
+
+  const handleFetchSchedules = useCallback(async () => {
+    const { typeScheduleId, countryId, stateId } = await getIds();
+    if (typeScheduleId && countryId && stateId) {
+      fetchSchedules({
+        type_schedule_id: typeScheduleId,
+        country_id: Number(countryId),
+        state_id: Number(stateId),
+      });
+    }
   }, [fetchSchedules, getIds]);
+
+  const handleSync = useCallback(async () => {
+    handleFetchSchedules();
+    setOpen(false);
+  }, [handleFetchSchedules]);
+
+  useEffect(() => {
+    handleFetchSchedules();
+  }, [handleFetchSchedules]);
 
   useEffect(() => {
     const unsub = scheduler.subscribe(({ playing, queued }) => {
@@ -67,11 +88,21 @@ export function ScreenProvider({
         schedules,
         playing,
         queued,
+        text,
+        open,
+        value,
+        bottomValue,
+        isFetching,
         activate: (s, v) => scheduler.activate(s, v),
         turnOff: (id) => scheduler.turnOff(id),
         handleSelectAudio,
-        text,
         setText,
+        setValue,
+        setBottomValue,
+        setOpen,
+        handleChange,
+        handleClose,
+        handleSync,
       }}
     >
       {children}

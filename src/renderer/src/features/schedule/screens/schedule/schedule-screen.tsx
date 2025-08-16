@@ -1,4 +1,4 @@
-import React, { useState, type ReactNode } from "react";
+import React, { type ReactNode } from "react";
 import { ScreenProvider, useScreenProvider } from "./screen-context";
 import {
   Box,
@@ -6,7 +6,6 @@ import {
   Tab,
   AppBar,
   useTheme,
-  Typography,
   BottomNavigation,
   BottomNavigationAction,
   Paper,
@@ -19,15 +18,22 @@ import {
   styled,
   InputBase,
   IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Button,
 } from "@mui/material";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import AccessTimeFilledIcon from "@mui/icons-material/AccessTimeFilled";
 import { a11yPropsTabPanel } from "../../utils";
-import { ListDefault, ListOwn, TabPanel } from "./fragments";
+import { ListDefault, ListOwn, Profile, TabPanel } from "./fragments";
 import CssBaseline from "@mui/material/CssBaseline";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUpRounded";
 import SearchIcon from "@mui/icons-material/Search";
-import { SyncRounded, KeyboardAltRounded } from "@mui/icons-material";
+import { SyncRounded } from "@mui/icons-material";
+import ClearIcon from "@mui/icons-material/Clear";
 
 interface Props {
   /**
@@ -40,6 +46,8 @@ interface Props {
 
 const Search = styled("div")(({ theme }) => ({
   position: "relative",
+  display: "flex",
+  alignItems: "center",
   borderRadius: theme.shape.borderRadius,
   backgroundColor: alpha(theme.palette.common.white, 0.15),
   "&:hover": {
@@ -48,16 +56,11 @@ const Search = styled("div")(({ theme }) => ({
   marginRight: theme.spacing(2),
   marginLeft: 0,
   width: "100%",
-  [theme.breakpoints.up("sm")]: {
-    marginLeft: theme.spacing(3),
-    width: "auto",
-  },
 }));
 
 const SearchIconWrapper = styled("div")(({ theme }) => ({
   padding: theme.spacing(0, 2),
   height: "100%",
-  position: "absolute",
   pointerEvents: "none",
   display: "flex",
   alignItems: "center",
@@ -69,12 +72,8 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   "& .MuiInputBase-input": {
     padding: theme.spacing(1, 1, 1, 0),
     // vertical padding + font size from searchIcon
-    paddingLeft: `calc(1em + ${theme.spacing(4)})`,
     transition: theme.transitions.create("width"),
     width: "100%",
-    [theme.breakpoints.up("md")]: {
-      width: "20ch",
-    },
   },
 }));
 
@@ -116,21 +115,40 @@ function ScrollTop(props: Props): ReactNode {
 
 export const ScheduleContent = (props: Props): ReactNode => {
   const theme = useTheme();
-  const [value, setValue] = useState(0);
-  const [bottomValue, setBottomValue] = useState(0);
-  const { text, setText } = useScreenProvider();
+  const {
+    text,
+    queued,
+    playing,
+    value,
+    bottomValue,
+    open,
+    // isFetching,
+    setText,
+    setBottomValue,
+    setOpen,
+    handleChange,
+    handleClose,
+    handleSync,
+  } = useScreenProvider();
 
-  const handleChange = (
-    _event: React.SyntheticEvent,
-    newValue: number,
-  ): void => {
-    setValue(newValue);
-  };
+  // if (isFetching) {
+  //   return (
+  //     <Box
+  //       sx={{
+  //         display: "flex",
+  //         justifyContent: "center",
+  //         alignItems: "center",
+  //         height: "100vh",
+  //       }}
+  //     >
+  //       <CircularProgress />
+  //     </Box>
+  //   );
+  // }
 
   return (
     <React.Fragment>
       <CssBaseline />
-
       {bottomValue === 0 && (
         <React.Fragment>
           <AppBar>
@@ -144,33 +162,44 @@ export const ScheduleContent = (props: Props): ReactNode => {
                   inputProps={{ "aria-label": "search" }}
                   value={text}
                   onChange={(e) => setText(e.target.value)}
+                  style={{
+                    width: "80%",
+                  }}
+                  endAdornment={
+                    text && (
+                      <IconButton
+                        onClick={() => setText("")}
+                        edge="end"
+                        color="inherit"
+                      >
+                        <ClearIcon />
+                      </IconButton>
+                    )
+                  }
                 />
               </Search>
               <Box sx={{ flexGrow: 1 }} />
               <Box sx={{ display: { xs: "flex", md: "none" } }}>
                 <IconButton
+                  onClick={() => setOpen(true)}
                   size="large"
                   aria-label="show more"
-                  // aria-controls={mobileMenuId}
                   aria-haspopup="true"
-                  // onClick={handleMobileMenuOpen}
                   color="inherit"
                 >
                   <SyncRounded />
                 </IconButton>
               </Box>
-              <Box sx={{ display: { xs: "flex", md: "none" } }}>
+              {/* <Box sx={{ display: { xs: "flex", md: "none" } }}>
                 <IconButton
                   size="large"
                   aria-label="show more"
-                  // aria-controls={mobileMenuId}
                   aria-haspopup="true"
-                  // onClick={handleMobileMenuOpen}
                   color="inherit"
                 >
                   <KeyboardAltRounded />
                 </IconButton>
-              </Box>
+              </Box> */}
             </Toolbar>
             <Tabs
               value={value}
@@ -183,8 +212,10 @@ export const ScheduleContent = (props: Props): ReactNode => {
               centered
             >
               <Tab label="Por defecto" {...a11yPropsTabPanel(0)} />
-              <Tab label="Propias" {...a11yPropsTabPanel(1)} />
-              <Tab label="Activas" {...a11yPropsTabPanel(2)} />
+              <Tab
+                label={`Activas (${queued.length + (playing ? 1 : 0)})`}
+                {...a11yPropsTabPanel(1)}
+              />
             </Tabs>
           </AppBar>
           <Toolbar id="back-to-top-anchor" />
@@ -193,9 +224,6 @@ export const ScheduleContent = (props: Props): ReactNode => {
               <ListDefault />
             </TabPanel>
             <TabPanel value={value} index={1} dir={theme.direction}>
-              <Typography>Propias</Typography>
-            </TabPanel>
-            <TabPanel value={value} index={2} dir={theme.direction}>
               <ListOwn />
             </TabPanel>
             <ScrollTop {...props}>
@@ -207,7 +235,7 @@ export const ScheduleContent = (props: Props): ReactNode => {
         </React.Fragment>
       )}
 
-      {bottomValue === 1 && <Typography>Perfil</Typography>}
+      {bottomValue === 1 && <Profile />}
 
       <Paper
         sx={{
@@ -238,6 +266,28 @@ export const ScheduleContent = (props: Props): ReactNode => {
           />
         </BottomNavigation>
       </Paper>
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="responsive-dialog-title"
+      >
+        <DialogTitle id="responsive-dialog-title">
+          Sincronizar programaciones
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Desea sincronizar las programaciones?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button autoFocus onClick={handleClose} color="error">
+            Cancelar
+          </Button>
+          <Button onClick={handleSync} autoFocus color="primary">
+            Sincronizar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </React.Fragment>
   );
 };
