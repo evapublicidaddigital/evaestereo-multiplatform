@@ -33,6 +33,8 @@
     "@reduxjs/toolkit": "^2.8.2",
     "@tailwindcss/vite": "^4.1.11",
     "aws-amplify": "^6.15.4",
+    "cryptolens": "^1.0.1-5.1",
+    "electron-store": "^10.1.0",
     "electron-updater": "^6.3.9",
     "lodash": "^4.17.21",
     "material-react-table": "^3.2.1",

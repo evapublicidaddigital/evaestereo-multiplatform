@@ -9,7 +9,6 @@ import type {
 import type {
   ScheduleModel,
   TypeScheduleModel,
-  ScheduleResponseModel,
   TypeScheduleResponseModel,
   TypeScheduleParamsModel,
   ScheduleParamsModel,
@@ -35,7 +34,7 @@ export const scheduleApi = createApi({
       } catch (error) {
         console.error(
           "Error al obtener el token de Cognito o sesión no activa:",
-          error
+          error,
         );
       }
       return headers;
@@ -43,7 +42,7 @@ export const scheduleApi = createApi({
   }),
   tagTypes: ["Schedule", "TypeSchedule"],
   endpoints: (builder) => ({
-    getSchedules: builder.query<ScheduleResponseModel, ScheduleParamsModel>({
+    getSchedules: builder.query<ScheduleModel[], ScheduleParamsModel>({
       query: ({
         name,
         limit,
@@ -61,15 +60,12 @@ export const scheduleApi = createApi({
         return `get-all-schedules/${type_schedule_id}/${country_id}/${state_id}?${params.toString()}`;
       },
       transformResponse: (response: GeneralResponseDto<ScheduleDto>) => {
-        return {
-          schedules: scheduleMapper(response.items || []),
-          nextToken: response.next_token,
-        };
+        return scheduleMapper(response.items || []);
       },
       providesTags: (result) =>
         result
           ? [
-              ...result.schedules.map(({ id }) => ({
+              ...result.map(({ id }) => ({
                 type: "Schedule" as const,
                 id,
               })),
@@ -93,7 +89,7 @@ export const scheduleApi = createApi({
           body,
         }),
         invalidatesTags: [{ type: "Schedule", id: "LIST" }],
-      }
+      },
     ),
 
     deleteSchedule: builder.mutation<ScheduleModel[], Partial<ScheduleDtoPost>>(
@@ -102,7 +98,7 @@ export const scheduleApi = createApi({
           url: `delete-schedule/${body.type_schedule_id}/${body.id}`,
           method: "DELETE",
         }),
-      }
+      },
     ),
 
     getTypeSchedules: builder.query<

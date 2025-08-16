@@ -1,10 +1,13 @@
-import Versions from "./components/Versions";
-import electronLogo from "./assets/electron.svg";
 import "@aws-amplify/ui-react/styles.css";
 import "@aws-amplify/ui-react/styles/reset.layer.css"; // global CSS reset
 import "@aws-amplify/ui-react/styles/base.layer.css"; // base styling needed for Amplify UI
 import "@aws-amplify/ui-react/styles/button.layer.css"; // component specific styles
 import { Amplify } from "aws-amplify";
+import { useAuthContext } from "./core/context";
+import { SignInScreen } from "./features/user/screens";
+import { ScheduleScreen } from "./features/schedule/screens";
+import { SelectCountry } from "./components";
+import { Box, CircularProgress } from "@mui/material";
 
 Amplify.configure({
   Auth: {
@@ -34,34 +37,32 @@ Amplify.configure({
 });
 
 function App(): React.JSX.Element {
-  const ipcHandle = (): void => window.electron.ipcRenderer.send("ping");
+  const { isAuthenticated, showSelectCountry, isLoading } = useAuthContext();
 
-  return (
-    <>
-      <img alt="logo" className="logo" src={electronLogo} />
-      <div className="creator">Powered by electron-vite</div>
-      <div className="text">
-        Build an Electron app with <span className="react">React</span>
-        &nbsp;and <span className="ts">TypeScript</span>
-      </div>
-      <p className="tip">
-        Please try pressing <code>F12</code> to open the devTool
-      </p>
-      <div className="actions">
-        <div className="action">
-          <a href="https://electron-vite.org/" target="_blank" rel="noreferrer">
-            Documentation
-          </a>
-        </div>
-        <div className="action">
-          <a target="_blank" rel="noreferrer" onClick={ipcHandle}>
-            Send IPC
-          </a>
-        </div>
-      </div>
-      <Versions></Versions>
-    </>
-  );
+  if (isLoading) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          paddingTop: 10,
+          height: "100vh",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <SignInScreen />;
+  }
+
+  if (!showSelectCountry) {
+    return <SelectCountry />;
+  }
+
+  return <ScheduleScreen />;
 }
 
 export default App;

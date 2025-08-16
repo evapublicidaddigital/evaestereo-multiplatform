@@ -8,6 +8,7 @@
     "composite": true,
     "types": ["electron-vite/node"],
     "skipLibCheck": true,
+    "esModuleInterop": true,
  
     /* Bundler mode */
     "moduleResolution": "bundler",

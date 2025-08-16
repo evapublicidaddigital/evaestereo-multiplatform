@@ -25,7 +25,7 @@ export const scheduleMapper = (data: ScheduleDto[]): ScheduleModel[] => {
 };
 
 export const typeScheduleMapper = (
-  data: TypeScheduleDto[]
+  data: TypeScheduleDto[],
 ): TypeScheduleModel[] => {
   return data.map((item) => ({
     id: item.sk.split("#")[1],
