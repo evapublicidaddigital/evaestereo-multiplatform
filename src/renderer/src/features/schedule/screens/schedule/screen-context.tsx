@@ -13,6 +13,7 @@ import type { ScheduleModel } from "../../data/models";
 import { useGetIds } from "../../hooks";
 import type { PublicJob } from "../../services/types";
 import { AudioScheduler } from "../../services/audio-scheduler";
+import { useAuthContext } from "@renderer/core/context/auth-context/auth-context";
 
 const ScreenContext = createContext<ScreenContextType | undefined>(undefined);
 
@@ -21,9 +22,11 @@ export function ScreenProvider({
 }: {
   children: ReactNode;
 }): ReactNode {
+  const { license } = useAuthContext();
   const { getIds } = useGetIds();
 
-  const [fetchSchedules, { data: schedules = [], isFetching }] = useLazyGetSchedulesQuery();
+  const [fetchSchedules, { data: schedules = [], isFetching }] =
+    useLazyGetSchedulesQuery();
 
   const scheduler = useMemo(() => new AudioScheduler(), []);
   const [playing, setPlaying] = useState<PublicJob | null>(null);
@@ -53,11 +56,17 @@ export function ScreenProvider({
 
   const handleFetchSchedules = useCallback(async () => {
     const { typeScheduleId, countryId, stateId } = await getIds();
+
+    console.log("🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈", typeScheduleId);
+    console.log("🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈", countryId);
+    console.log("🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈", stateId);
+
     if (typeScheduleId && countryId && stateId) {
       fetchSchedules({
         type_schedule_id: typeScheduleId,
         country_id: Number(countryId),
         state_id: Number(stateId),
+        client_id: "73878",
       });
     }
   }, [fetchSchedules, getIds]);
