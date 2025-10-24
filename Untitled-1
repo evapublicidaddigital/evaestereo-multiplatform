@@ -1,0 +1,8 @@
+./gradlew \
+  -PAPI_URL="https://back.schedule.evapublicidaddigital.com/api/v1" \
+  -PAPI_URL_COUNTRY="https://api.countrystatecity.in/v1" \
+  -PCSC_API_KEY="RVJKVnJLMTU5ZkRPTzJjMmdHNzBEd0lOSm01cVhjMmYzS0sxZWlXOQ==" \
+  -PRSA_PUB_KEY="<RSAKeyValue><Modulus>qk1k8i5VSAdVv2ec/I5xx7+k4mH2A0Z4JAC50OzOddaMy35bWF9Z/q2JScrfaOZ9RwB83ePR+y0G3Yil9MsVRBdBbeieqX6wEfnLuXIlVDY7HcYmUymJvPCmDBm3IcEIzi8DgIQ9jhK/pMrpZVWYVmMhvvG2FcW3Rr5RWxgSSBTltT2wIVtMC0qYCZs6WupMsiO2QDOWTOAc0t1C1yf7ZanH8xKldVdscFBGSAaVdCqQq7RlZ876FdXofQqiWrX8t2fTxaF2BsbLx5/1dDR5yS301iYfRsUAsloZh+dH5+2oVhQnM4HdLVi4FsCtraA+sLD9xlc/Gozpbz7XAfkY/w==</Modulus><Exponent>AQAB</Exponent></RSAKeyValue>" \
+  -PPRODUCT_ID="24470" \
+  -PACCESS_TOKEN="WyIxMTExMDY0NjciLCJYdVFVRi9rbmdSQVBFVDBocnZYV1BEd2lwTFA0eXN3YUZWMWc3dEpnIl0=" \
+  :composeApp:packageDmg
