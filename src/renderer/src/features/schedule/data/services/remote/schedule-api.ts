@@ -50,13 +50,13 @@ export const scheduleApi = createApi({
         type_schedule_id,
         country_id,
         state_id,
-        client_id,
+        // client_id,
       }) => {
         const params = new URLSearchParams();
         if (name) params.append("name", name);
         if (limit) params.append("limit", limit.toString());
         if (nextToken) params.append("nextToken", JSON.stringify(nextToken));
-        if (client_id) params.append("client_id", client_id?.toString());
+        // if (client_id) params.append("client_id", client_id?.toString());
         return `get-all-schedules/${type_schedule_id}/${country_id}/${state_id}?${params.toString()}`;
       },
       transformResponse: (response: GeneralResponseDto<ScheduleDto>) => {

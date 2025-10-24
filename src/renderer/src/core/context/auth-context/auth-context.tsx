@@ -232,6 +232,9 @@ export function AuthContextProvider({
    */
   const validateLicense = useCallback(async (): Promise<void> => {
     try {
+      // await window.electron.store.delete("typeScheduleId");
+      // await window.electron.store.delete("countryId");
+      // await window.electron.store.delete("stateId");
       setIsLoading(true);
       const result = await window.api.verifyLicense();
       if (result) {

@@ -13,7 +13,6 @@ import type { ScheduleModel } from "../../data/models";
 import { useGetIds } from "../../hooks";
 import type { PublicJob } from "../../services/types";
 import { AudioScheduler } from "../../services/audio-scheduler";
-import { useAuthContext } from "@renderer/core/context/auth-context/auth-context";
 
 const ScreenContext = createContext<ScreenContextType | undefined>(undefined);
 
@@ -22,7 +21,6 @@ export function ScreenProvider({
 }: {
   children: ReactNode;
 }): ReactNode {
-  const { license } = useAuthContext();
   const { getIds } = useGetIds();
 
   const [fetchSchedules, { data: schedules = [], isFetching }] =
@@ -66,7 +64,7 @@ export function ScreenProvider({
         type_schedule_id: typeScheduleId,
         country_id: Number(countryId),
         state_id: Number(stateId),
-        client_id: "73878",
+        // client_id: "73878",
       });
     }
   }, [fetchSchedules, getIds]);

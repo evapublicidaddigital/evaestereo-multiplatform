@@ -1,4 +1,4 @@
-import React, { type ReactNode } from "react";
+import React, { type ReactNode, useCallback, useMemo, useState } from "react";
 import { ScreenProvider, useScreenProvider } from "./screen-context";
 import {
   Box,
@@ -24,6 +24,9 @@ import {
   DialogContentText,
   DialogActions,
   Button,
+  SwipeableDrawer,
+  Divider,
+  Typography,
 } from "@mui/material";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import AccessTimeFilledIcon from "@mui/icons-material/AccessTimeFilled";
@@ -32,7 +35,7 @@ import { ListDefault, ListOwn, Profile, TabPanel } from "./fragments";
 import CssBaseline from "@mui/material/CssBaseline";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUpRounded";
 import SearchIcon from "@mui/icons-material/Search";
-import { SyncRounded } from "@mui/icons-material";
+import { Keyboard, SyncRounded, Backspace } from "@mui/icons-material";
 import ClearIcon from "@mui/icons-material/Clear";
 
 interface Props {
@@ -129,7 +132,41 @@ export const ScheduleContent = (props: Props): ReactNode => {
     handleChange,
     handleClose,
     handleSync,
+    schedules,
+    activate,
   } = useScreenProvider();
+
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
+
+  const handleActivateByCode = useCallback(
+    (code: string) => {
+      const normalized = code.trim();
+      if (!normalized) return;
+
+      const schedule = schedules.find(
+        (s) => String(s.code).trim() === normalized,
+      );
+
+      if (!schedule) {
+        window.alert("El código no existe.");
+        return;
+      }
+
+      const isActive =
+        (playing && playing.scheduleId === schedule.id) ||
+        queued.some((q) => q.scheduleId === schedule.id);
+
+      if (isActive) {
+        window.alert("El código ya está sonando o en cola.");
+        return;
+      }
+
+      const voiceType = schedule.media_urls[0]?.type ?? "male";
+      activate(schedule, voiceType);
+      setKeyboardOpen(false);
+    },
+    [activate, playing, queued, schedules],
+  );
 
   // if (isFetching) {
   //   return (
@@ -188,6 +225,17 @@ export const ScheduleContent = (props: Props): ReactNode => {
                   color="inherit"
                 >
                   <SyncRounded />
+                </IconButton>
+              </Box>
+              <Box sx={{ display: { xs: "flex", md: "none" } }}>
+                <IconButton
+                  onClick={() => setKeyboardOpen(true)}
+                  size="large"
+                  aria-label="show more"
+                  aria-haspopup="true"
+                  color="inherit"
+                >
+                  <Keyboard />
                 </IconButton>
               </Box>
               {/* <Box sx={{ display: { xs: "flex", md: "none" } }}>
@@ -288,6 +336,15 @@ export const ScheduleContent = (props: Props): ReactNode => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Bottom sheet numeric keypad */}
+      {keyboardOpen && (
+        <NumericKeypadDrawer
+          open={keyboardOpen}
+          onClose={() => setKeyboardOpen(false)}
+          onActivate={(code) => handleActivateByCode(code)}
+        />
+      )}
     </React.Fragment>
   );
 };
@@ -297,3 +354,118 @@ export const ScheduleScreen = (): ReactNode => (
     <ScheduleContent />
   </ScreenProvider>
 );
+
+// Internal keypad drawer component
+const NumericKeypadDrawer = ({
+  open,
+  onClose,
+  onActivate,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onActivate: (code: string) => void;
+}): ReactNode => {
+  const [input, setInput] = useState<string>("");
+
+  const handleDigit = useCallback((d: number) => {
+    setInput((prev) => `${prev}${d}`);
+  }, []);
+
+  const handleBackspace = useCallback(() => {
+    setInput((prev) => prev.slice(0, -1));
+  }, []);
+
+  const handleClear = useCallback(() => {
+    setInput("");
+  }, []);
+
+  const canActivate = useMemo(() => input.trim().length > 0, [input]);
+
+  const handleActivate = useCallback(() => {
+    if (!canActivate) return;
+    onActivate(input.trim());
+  }, [canActivate, input, onActivate]);
+
+  return (
+    <SwipeableDrawer
+      anchor="bottom"
+      open={open}
+      onClose={onClose}
+      onOpen={() => {}}
+      disableSwipeToOpen
+      PaperProps={{ sx: { borderTopLeftRadius: 12, borderTopRightRadius: 12 } }}
+    >
+      <Box sx={{ p: 2 }}>
+        <Box sx={{ display: "flex", justifyContent: "center", mb: 1 }}>
+          <Typography variant="h6">Ingresar código</Typography>
+        </Box>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            bgcolor: "action.hover",
+            borderRadius: 1,
+            px: 2,
+            py: 1.5,
+            mb: 2,
+          }}
+        >
+          <Typography variant="h5" sx={{ letterSpacing: 2 }}>
+            {input || "—"}
+          </Typography>
+          <Box>
+            <IconButton onClick={handleBackspace} aria-label="borrar">
+              <Backspace />
+            </IconButton>
+          </Box>
+        </Box>
+
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: 1,
+          }}
+        >
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
+            <Button
+              key={n}
+              variant="contained"
+              color="primary"
+              fullWidth
+              onClick={() => handleDigit(n)}
+            >
+              {n}
+            </Button>
+          ))}
+          <Button variant="outlined" fullWidth onClick={handleClear}>
+            Limpiar
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            fullWidth
+            onClick={() => handleDigit(0)}
+          >
+            0
+          </Button>
+          <Button
+            variant="contained"
+            color="success"
+            fullWidth
+            onClick={handleActivate}
+            disabled={!canActivate}
+          >
+            Activar
+          </Button>
+        </Box>
+
+        <Divider sx={{ mt: 2 }} />
+        <Box sx={{ display: "flex", justifyContent: "center", my: 1 }}>
+          <Button onClick={onClose}>Cerrar</Button>
+        </Box>
+      </Box>
+    </SwipeableDrawer>
+  );
+};
